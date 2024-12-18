@@ -1,7 +1,7 @@
 # vim:ft=dockerfile
 
 # the base image is ubuntu
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 # create basic working environment
 RUN ln -snf /usr/share/zoneinfo/UTC /etc/localtime \
@@ -11,31 +11,33 @@ RUN ln -snf /usr/share/zoneinfo/UTC /etc/localtime \
     make \
     git \
     ca-certificates \
-    gfortran-8 \
+    gfortran \
     python3 \
     python3-pip \
  && rm -rf /var/lib/apt/lists/* \
  && ln -s /usr/bin/python3 /usr/bin/python
 
 # use pip to install required packages
-RUN pip3 install -I numpy==1.15.4 scipy==1.2.0 netcdf4==1.4.2 six==1.12.0 \ 
-    matplotlib==3.0.2 rasterio==1.0.22 requests==2.21.0
+RUN pip3 install -I numpy scipy netcdf4 six matplotlib rasterio requests
 
 # set up necessary environment variables
 ENV PYTHON=python3 \
-    FC=gfortran-8 \
+    FC=gfortran \
     MPLBACKEND=agg \
-    PATH=/opt/geoclaw-landspill-cases/utilities:$PATH
+    PATH=/opt/geoclaw-landspill-cases-new/utilities:$PATH
 
-# clone geoclaw-landspill-cases
+# clone geoclaw-landspill-cases-new
 RUN cd /opt \
- && git clone https://github.com/barbagroup/geoclaw-landspill-cases.git \
- && cd geoclaw-landspill-cases \
+ && git config --global http.sslVerify false \
+ && git clone https://github.com/ENTRUSTSolutionsDevelopment/geoclaw-landspill-cases-new.git \
+ && cd geoclaw-landspill-cases-new \
  && $PYTHON setup.py
+ 
 
 # add a new non-root user and copy example case folders
 RUN useradd -ms /bin/bash landspill \
- && cp -r /opt/geoclaw-landspill-cases/cases /home/landspill/landspill-examples \
+ && chmod -R 777 /opt/geoclaw-landspill-cases-new \
+ && cp -r /opt/geoclaw-landspill-cases-new/cases /home/landspill/landspill-examples \
  && chown landspill:landspill -R /home/landspill/landspill-examples
 
 # change user to landspill
@@ -44,3 +46,5 @@ WORKDIR /home/landspill
 
 # default command
 CMD ["/bin/bash"]
+
+
